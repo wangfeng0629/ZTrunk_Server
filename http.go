@@ -19,21 +19,48 @@ func (h *Handlers) ResAction(w http.ResponseWriter, req *http.Request) {
 type RedisHander struct {
 }
 
+// 获取
+func GetHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+	if c == nil {
+		fmt.Println("redis connet failed")
+	}
+	v, e := c.Do("set", string(111111), req.Body)
+	if e != nil {
+		fmt.Println(e)
+	} else {
+		fmt.Println(v)
+		val, _ := redis.String(c.Do("get", string(111111)))
+		fmt.Println(val)
+		w.Write([]byte(val))
+	}
+}
+
+// 修改
+func PostHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+
+}
+
+// 上传
+func PutHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+
+}
+
+// 删除
+func DeleteHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+
+}
+
 func say(w http.ResponseWriter, req *http.Request) {
-	//fmt.Println(req)
 	c := GetRedisHander()
 	switch req.Method {
 	case "GET":
-		if c == nil {
-			fmt.Println("redis connet failed")
-		}
-		v, e := c.Do("set", string(111111), req)
-		if e != nil {
-			fmt.Println(e)
-		} else {
-			fmt.Println(v)
-			fmt.Println(redis.String(c.Do("get", string(111111))))
-		}
+		GetHttpTask(w, req, c)
+	case "POST":
+		PostHttpTask(w, req, c)
+	case "PUT":
+		PutHttpTask(w, req, c)
+	case "DELETE":
+		DeleteHttpTask(w, req, c)
 	}
 	defer c.Close()
 	return
