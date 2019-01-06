@@ -1,12 +1,17 @@
 package main
 
 import (
+	"ZTrunk_Server/redispool"
+	"ZTrunk_Server/setting"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
 )
+
+var redisPool = &redispool.ConnPool{}
 
 type Handlers struct {
 }
@@ -35,6 +40,17 @@ func GetHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 	}
 }
 
+func RedisHttpTask(w http.ResponseWriter, req *http.Request) {
+	ret, err := redisPool.SetByString("Redis", "RedisPool")
+	if err != nil {
+		log.Fatalf("Redis set faial : %v", err)
+	} else {
+		fmt.Println(ret)
+		retVal, _ := redisPool.GetByString("Redis")
+		fmt.Println(retVal)
+	}
+}
+
 // 修改
 func PostHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 
@@ -55,6 +71,7 @@ func say(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 		GetHttpTask(w, req, c)
+		RedisHttpTask(w, req)
 	case "POST":
 		PostHttpTask(w, req, c)
 	case "PUT":
@@ -98,7 +115,14 @@ func GetRedisHander() redis.Conn {
 func main() {
 	http.HandleFunc("/", say)
 	http.Handle("/hcg/", http.HandlerFunc(say))
-	http.ListenAndServe(":8001", nil)
+
+	redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
+	fmt.Println(redisAddr)
+	redisPool = redispool.InitRedisPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
+
+	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
+	fmt.Printf("serving on %s:%d \n", setting.HTTPIp, setting.HTTPPort)
+	http.ListenAndServe(httpAddr, nil)
 
 	//select {} //阻塞进程
 }
