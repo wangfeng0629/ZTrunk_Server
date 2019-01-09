@@ -1,24 +1,38 @@
 package redispool
 
 import (
-	"github.com/garyburd/redigo/redis"
-
+	"fmt"
 	"log"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
+
+	"ZTrunk_Server/setting"
 )
+
+var connPool = &ConnPool{}
 
 // 连接池
 type ConnPool struct {
 	redisPool *redis.Pool
 }
 
-func InitRedisPool(host, password string, database, maxOpenConns, maxIdleConns int) *ConnPool {
-	connPool := &ConnPool{}
-	connPool.redisPool = newPool(host, password, database, maxOpenConns, maxIdleConns)
+// 获取连接池
+func GetInstance() *ConnPool {
+	if connPool.redisPool == nil {
+		redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
+		fmt.Println(redisAddr)
+		initPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
+	}
+	return connPool
+}
+
+// 初始化连接池
+func initPool(host, password string, database, maxOpenConn, maxIdleConn int) {
+	connPool.redisPool = newPool(host, password, database, maxOpenConn, maxIdleConn)
 	if _, err := connPool.DoCmd("PING"); err != nil {
 		log.Fatal("Init Redis Poll Failed !!!", err.Error())
 	}
-	return connPool
 }
 
 // 新建连接池

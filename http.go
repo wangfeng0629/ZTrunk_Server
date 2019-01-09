@@ -1,13 +1,15 @@
 package main
 
 import (
-	"ZTrunk_Server/redispool"
-	"ZTrunk_Server/setting"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/gomodule/redigo/redis"
+
+	"ZTrunk_Server/redispool"
+	"ZTrunk_Server/setting"
 )
 
 var redisPool = &redispool.ConnPool{}
@@ -105,12 +107,12 @@ func HttpDeleteTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 }
 
 func RedisHttpTask(w http.ResponseWriter, req *http.Request) {
-	ret, err := redisPool.SetByString("Redis", "RedisPool")
+	ret, err := redispool.GetInstance().SetByString("Redis", "RedisPool")
 	if err != nil {
 		log.Fatalf("Redis set faial : %v", err)
 	} else {
 		fmt.Println(ret)
-		retVal, _ := redisPool.GetByString("Redis")
+		retVal, _ := redispool.GetInstance().GetByString("Redis")
 		fmt.Println(retVal)
 	}
 }
@@ -144,10 +146,6 @@ func GetRedisHander() redis.Conn {
 func main() {
 	http.HandleFunc("/", say)
 	http.Handle("/hcg/", http.HandlerFunc(say))
-
-	redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
-	fmt.Println(redisAddr)
-	redisPool = redispool.InitRedisPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
 
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
 	fmt.Printf("serving on %s:%d \n", setting.HTTPIp, setting.HTTPPort)
