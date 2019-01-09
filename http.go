@@ -7,7 +7,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
@@ -21,23 +20,88 @@ func (h *Handlers) ResAction(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("hcg"))
 }
 
-type RedisHander struct {
+// test
+func HttpTestTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+	h_str := strings.Split(req.URL.RawQuery, "?")
+	if len(h_str) == 1 {
+		id_str := strings.Split(h_str[0], "=")
+		if id_str[0] == "id" {
+			HttpGetTask(w, req, c)
+		} else if id_str[0] == "del" {
+			HttpDeleteTask(w, req, c)
+		}
+	} else if len(h_str) == 2 {
+		HttpPostTask(w, req, c)
+	} else {
+		fmt.Println("http error！")
+		w.Write([]byte("http error！"))
+	}
 }
 
-// 获取
-func GetHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
-	if c == nil {
-		fmt.Println("redis connet failed")
+// get
+func HttpGetTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+	h_str := strings.Split(req.URL.RawQuery, "?")
+	id_str := strings.Split(h_str[0], "=")
+	if len(id_str) != 2 {
+		fmt.Println("http get error!")
+		w.Write([]byte("http get error!"))
+		return
 	}
-	v, e := c.Do("set", string(111111), req.Body)
+	id := id_str[1]
+	g_str, e := redis.String(c.Do("get", id))
 	if e != nil {
 		fmt.Println(e)
-	} else {
-		fmt.Println(v)
-		val, _ := redis.String(c.Do("get", string(111111)))
-		fmt.Println(val)
-		w.Write([]byte(val))
+		w.Write([]byte("get error, not this key！"))
+		return
 	}
+	g_str1 := "get ok！" + g_str
+	fmt.Println(g_str1)
+	w.Write([]byte(g_str1))
+}
+
+// put/post
+func HttpPostTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+	h_str := strings.Split(req.URL.RawQuery, "?")
+	id_str := strings.Split(h_str[0], "=")
+	v_str := strings.Split(h_str[1], "=")
+	if len(id_str) != 2 || len(v_str) != 2 {
+		fmt.Println("http gost/put error!")
+		w.Write([]byte("http post/put error!"))
+		return
+	}
+	_, e := c.Do("set", id_str[1], v_str[1])
+	if e != nil {
+		fmt.Println(e)
+		p_str := "post error " + h_str[0] + "" + h_str[1]
+		w.Write([]byte(p_str))
+		return
+	}
+	p_str := "post ok! " + h_str[0] + " " + h_str[1]
+	fmt.Println(p_str)
+	w.Write([]byte(p_str))
+}
+
+func HttpPutTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+}
+
+// delete
+func HttpDeleteTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+	h_str := strings.Split(req.URL.RawQuery, "?")
+	id_str := strings.Split(h_str[0], "=")
+	if len(id_str) != 2 {
+		fmt.Println("http delete error!")
+		w.Write([]byte("http delete error!"))
+		return
+	}
+	id := id_str[1]
+	_, e := c.Do("del", id)
+	if e != nil {
+		fmt.Println(e)
+		return
+	}
+	p_str := "delete ok! " + id
+	fmt.Println(p_str)
+	w.Write([]byte(p_str))
 }
 
 func RedisHttpTask(w http.ResponseWriter, req *http.Request) {
@@ -51,56 +115,21 @@ func RedisHttpTask(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// 修改
-func PostHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
-
-}
-
-// 上传
-func PutHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
-
-}
-
-// 删除
-func DeleteHttpTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
-
-}
-
 func say(w http.ResponseWriter, req *http.Request) {
 	c := GetRedisHander()
 	switch req.Method {
 	case "GET":
-		GetHttpTask(w, req, c)
+		HttpTestTask(w, req, c)
+		//HttpGetTask(w, req, c)
 		RedisHttpTask(w, req)
 	case "POST":
-		PostHttpTask(w, req, c)
+		HttpPostTask(w, req, c)
 	case "PUT":
-		PutHttpTask(w, req, c)
+		HttpPutTask(w, req, c)
 	case "DELETE":
-		DeleteHttpTask(w, req, c)
+		HttpDeleteTask(w, req, c)
 	}
 	defer c.Close()
-	return
-	fmt.Println("Method:", req.Method)
-	pathInfo := strings.Trim(req.URL.Path, "/")
-	fmt.Println("pathInfo:", pathInfo)
-
-	parts := strings.Split(pathInfo, "/")
-	fmt.Println("parts:", parts)
-
-	var action = "ResAction"
-	fmt.Println(strings.Join(parts, "|"))
-	if len(parts) > 1 {
-		fmt.Println("22222222")
-		action = strings.Title(parts[1]) + "Action"
-	}
-	fmt.Println("action:", action)
-	handle := &Handlers{}
-	controller := reflect.ValueOf(handle)
-	method := controller.MethodByName(action)
-	r := reflect.ValueOf(req)
-	wr := reflect.ValueOf(w)
-	method.Call([]reflect.Value{wr, r})
 }
 
 func GetRedisHander() redis.Conn {
@@ -123,6 +152,4 @@ func main() {
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
 	fmt.Printf("serving on %s:%d \n", setting.HTTPIp, setting.HTTPPort)
 	http.ListenAndServe(httpAddr, nil)
-
-	//select {} //阻塞进程
 }
