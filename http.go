@@ -12,8 +12,6 @@ import (
 	"ZTrunk_Server/setting"
 )
 
-var redisPool = &redispool.ConnPool{}
-
 type Handlers struct {
 }
 
