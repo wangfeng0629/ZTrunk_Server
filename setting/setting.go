@@ -19,11 +19,13 @@ var (
 
 	MaxOpenConn int
 	MaxIdleConn int
+
+	LoggerLevel int
 )
 
 func init() {
 	var err error
-	ConfFile, err = ini.Load("../config/config.ini")
+	ConfFile, err = ini.Load("config/config.ini")
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/config.ini': %v", err)
 	}
@@ -31,6 +33,7 @@ func init() {
 	LoadRunMode()
 	LoadServerInfo()
 	LoadRedisInfo()
+	LoadLoggerInfo()
 }
 
 func LoadRunMode() {
@@ -57,4 +60,12 @@ func LoadRedisInfo() {
 	RedisPort = sec.Key("HTTP_PORT").MustInt(6379)
 	MaxOpenConn = sec.Key("MAX_OPEN_CONNS").MustInt(10)
 	MaxIdleConn = sec.Key("MAX_IDLE_CONNS").MustInt(2)
+}
+
+func LoadLoggerInfo() {
+	sec, err := ConfFile.GetSection("log")
+	if err != nil {
+		log.Fatalf("Fail to get secition 'log': %v", err)
+	}
+	LoggerLevel = sec.Key("HTTP_IP").MustInt(0)
 }
