@@ -67,5 +67,5 @@ func LoadLoggerInfo() {
 	if err != nil {
 		log.Fatalf("Fail to get secition 'log': %v", err)
 	}
-	LoggerLevel = sec.Key("HTTP_IP").MustInt(0)
+	LoggerLevel = sec.Key("LOGGER_LEVEL").MustInt(0)
 }
