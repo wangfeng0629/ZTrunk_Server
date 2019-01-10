@@ -3,7 +3,7 @@ package redispool
 import (
 	"ZTrunk_Server/setting"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"log"
 	"time"
 )
