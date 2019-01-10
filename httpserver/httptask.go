@@ -9,14 +9,6 @@ import (
 	"strings"
 )
 
-type Handlers struct {
-}
-
-func (h *Handlers) ResAction(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("res")
-	w.Write([]byte("hcg"))
-}
-
 // test
 func HttpTestTask(w http.ResponseWriter, req *http.Request) {
 	h_str := strings.Split(req.URL.RawQuery, "?")
