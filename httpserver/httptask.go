@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// test
+// test 测试代码
 func HttpTestTask(w http.ResponseWriter, req *http.Request) {
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	if len(h_str) == 1 {
