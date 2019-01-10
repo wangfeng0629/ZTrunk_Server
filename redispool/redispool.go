@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-var pool = &ConnPool{}
-
 // 连接池
 type ConnPool struct {
 	redisPool *redis.Pool
 }
+
+var pool = &ConnPool{}
 
 // 初始化Redis池
 func InitRedis() bool {
@@ -27,9 +27,11 @@ func InitRedis() bool {
 	return true
 }
 
-// 获取池
-func GetRedis() *ConnPool {
-	return pool
+// 删除连接池
+func FreePool() error {
+	err := pool.redisPool.Close()
+	log.Fatal("free redis poll")
+	return err
 }
 
 // 新建连接池
@@ -62,11 +64,9 @@ func newPool(host, password string, database, maxOpenConns, maxIdleConns int) *r
 	}
 }
 
-// 删除连接池
-func FreePool() error {
-	err := pool.redisPool.Close()
-	log.Fatal("free redis poll")
-	return err
+// 获取池
+func GetRedis() *ConnPool {
+	return pool
 }
 
 // 执行指令
