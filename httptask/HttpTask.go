@@ -1,37 +1,26 @@
-package main
+package httptask
 
 import (
 	"ZTrunk_Server/redispool"
 	"ZTrunk_Server/setting"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"log"
 	"net/http"
 	"strings"
 )
 
-var redisPool = &redispool.ConnPool{}
-
-type Handlers struct {
-}
-
-func (h *Handlers) ResAction(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("res")
-	w.Write([]byte("hcg"))
-}
-
 // test
-func HttpTestTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+func HttpTestTask(w http.ResponseWriter, req *http.Request) {
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	if len(h_str) == 1 {
 		id_str := strings.Split(h_str[0], "=")
 		if id_str[0] == "id" {
-			HttpGetTask(w, req, c)
+			HttpGetTask(w, req)
 		} else if id_str[0] == "del" {
-			HttpDeleteTask(w, req, c)
+			HttpDeleteTask(w, req)
 		}
 	} else if len(h_str) == 2 {
-		HttpPostTask(w, req, c)
+		HttpPostTask(w, req)
 	} else {
 		fmt.Println("http error！")
 		w.Write([]byte("http error！"))
@@ -39,7 +28,8 @@ func HttpTestTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 }
 
 // get
-func HttpGetTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+func HttpGetTask(w http.ResponseWriter, req *http.Request) {
+	redis_pool := getRedisHander()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	if len(id_str) != 2 {
@@ -48,7 +38,7 @@ func HttpGetTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 		return
 	}
 	id := id_str[1]
-	g_str, e := redis.String(c.Do("get", id))
+	g_str, e := redis.String(redis_pool.DoCmd("get", id))
 	if e != nil {
 		fmt.Println(e)
 		w.Write([]byte("get error, not this key！"))
@@ -59,8 +49,9 @@ func HttpGetTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 	w.Write([]byte(g_str1))
 }
 
-// put/post
-func HttpPostTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+// post
+func HttpPostTask(w http.ResponseWriter, req *http.Request) {
+	redis_pool := getRedisHander()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	v_str := strings.Split(h_str[1], "=")
@@ -69,7 +60,7 @@ func HttpPostTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 		w.Write([]byte("http post/put error!"))
 		return
 	}
-	_, e := c.Do("set", id_str[1], v_str[1])
+	_, e := redis_pool.DoCmd("set", id_str[1], v_str[1])
 	if e != nil {
 		fmt.Println(e)
 		p_str := "post error " + h_str[0] + "" + h_str[1]
@@ -81,11 +72,13 @@ func HttpPostTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 	w.Write([]byte(p_str))
 }
 
-func HttpPutTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+// put
+func HttpPutTask(w http.ResponseWriter, req *http.Request) {
 }
 
 // delete
-func HttpDeleteTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
+func HttpDeleteTask(w http.ResponseWriter, req *http.Request) {
+	redis_pool := getRedisHander()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	if len(id_str) != 2 {
@@ -94,7 +87,7 @@ func HttpDeleteTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 		return
 	}
 	id := id_str[1]
-	_, e := c.Do("del", id)
+	_, e := redis_pool.DoCmd("del", id)
 	if e != nil {
 		fmt.Println(e)
 		return
@@ -104,52 +97,29 @@ func HttpDeleteTask(w http.ResponseWriter, req *http.Request, c redis.Conn) {
 	w.Write([]byte(p_str))
 }
 
-func RedisHttpTask(w http.ResponseWriter, req *http.Request) {
-	ret, err := redisPool.SetByString("Redis", "RedisPool")
-	if err != nil {
-		log.Fatalf("Redis set faial : %v", err)
-	} else {
-		fmt.Println(ret)
-		retVal, _ := redisPool.GetByString("Redis")
-		fmt.Println(retVal)
-	}
-}
-
-func say(w http.ResponseWriter, req *http.Request) {
-	c := GetRedisHander()
+func HandleMsg(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-		HttpTestTask(w, req, c)
-		//HttpGetTask(w, req, c)
-		RedisHttpTask(w, req)
+		HttpTestTask(w, req)
+		//HttpGetTask(w, req)
 	case "POST":
-		HttpPostTask(w, req, c)
+		HttpPostTask(w, req)
 	case "PUT":
-		HttpPutTask(w, req, c)
+		HttpPutTask(w, req)
 	case "DELETE":
-		HttpDeleteTask(w, req, c)
+		HttpDeleteTask(w, req)
 	}
-	defer c.Close()
 }
 
-func GetRedisHander() redis.Conn {
-	c, err := redis.Dial("tcp", "127.0.0.1:6379")
-	if err != nil {
-		fmt.Println("test error")
-		return nil
-	}
-	return c
+func getRedisHander() *redispool.ConnPool {
+	return redispool.GetRedis()
 }
 
-func main() {
-	http.HandleFunc("/", say)
-	http.Handle("/hcg/", http.HandlerFunc(say))
-
-	redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
-	fmt.Println(redisAddr)
-	redisPool = redispool.InitRedisPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
+func HttpStartServer() {
+	http.HandleFunc("/", HandleMsg)
+	http.Handle("/hcg/", http.HandlerFunc(HandleMsg))
 
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
-	fmt.Printf("serving on %s:%d \n", setting.HTTPIp, setting.HTTPPort)
+	fmt.Println("[启动] Http监听端口", setting.HTTPPort)
 	http.ListenAndServe(httpAddr, nil)
 }

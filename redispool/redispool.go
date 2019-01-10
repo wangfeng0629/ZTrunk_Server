@@ -1,24 +1,35 @@
 package redispool
 
 import (
+	"ZTrunk_Server/setting"
+	"fmt"
 	"github.com/garyburd/redigo/redis"
-
 	"log"
 	"time"
 )
+
+var pool = &ConnPool{}
 
 // 连接池
 type ConnPool struct {
 	redisPool *redis.Pool
 }
 
-func InitRedisPool(host, password string, database, maxOpenConns, maxIdleConns int) *ConnPool {
-	connPool := &ConnPool{}
-	connPool.redisPool = newPool(host, password, database, maxOpenConns, maxIdleConns)
-	if _, err := connPool.DoCmd("PING"); err != nil {
+// 初始化Redis池
+func InitRedis() bool {
+	redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
+	fmt.Println(redisAddr)
+	pool.redisPool = newPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
+	if _, err := pool.DoCmd("PING"); err != nil {
 		log.Fatal("Init Redis Poll Failed !!!", err.Error())
+		return false
 	}
-	return connPool
+	return true
+}
+
+// 获取池
+func GetRedis() *ConnPool {
+	return pool
 }
 
 // 新建连接池
@@ -51,9 +62,10 @@ func newPool(host, password string, database, maxOpenConns, maxIdleConns int) *r
 	}
 }
 
-// 关闭连接池
-func (connPool *ConnPool) Close() error {
-	err := connPool.redisPool.Close()
+// 删除连接池
+func FreePool() error {
+	err := pool.redisPool.Close()
+	log.Fatal("free redis poll")
 	return err
 }
 

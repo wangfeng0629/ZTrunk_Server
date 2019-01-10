@@ -42,8 +42,8 @@ func LoadServerInfo() {
 		log.Fatalf("Fail to get secition 'server': %v", err)
 	}
 
-	HTTPIp = sec.Key("HTTP_IP").MustString("127.0.0.1")
-	HTTPPort = sec.Key("HTTP_PORT").MustInt(8080)
+	HTTPIp = sec.Key("HTTP_IP").MustString("120.92.189.115")
+	HTTPPort = sec.Key("HTTP_PORT").MustInt(8000)
 }
 
 func LoadRedisInfo() {
