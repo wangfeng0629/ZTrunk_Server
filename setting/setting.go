@@ -23,7 +23,7 @@ var (
 
 func init() {
 	var err error
-	ConfFile, err = ini.Load("config/config.ini")
+	ConfFile, err = ini.Load("../config/config.ini")
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/config.ini': %v", err)
 	}
