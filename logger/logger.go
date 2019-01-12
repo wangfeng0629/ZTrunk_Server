@@ -1,13 +1,23 @@
 package logger
 
-import "ZTrunk_Server/setting"
+import (
+	"ZTrunk_Server/setting"
+	"fmt"
+)
 
 var log Log
 
-func InitLogger() {
-	// 初始化控制台日志
+func InitLog(name string) (err error) {
 	loggerLevel := setting.LoggerLevel
-	log = CreateConsoleLog(loggerLevel)
+	switch name {
+	case "console":
+		log = CreateConsoleLog(loggerLevel)
+	case "file":
+		log = CreateFileLog(loggerLevel)
+	default:
+		err = fmt.Errorf("unsupport log name : %s", name)
+	}
+	return
 }
 
 func Debug(format string, args ...interface{}) {

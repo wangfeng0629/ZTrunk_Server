@@ -1,7 +1,9 @@
 package setting
 
 import (
+	"flag"
 	"log"
+	"runtime"
 
 	"github.com/go-ini/ini"
 )
@@ -11,7 +13,7 @@ var (
 
 	RunMode string
 
-	HTTPIp   string
+	HTTPIP   string
 	HTTPPort int
 
 	RedisIP   string
@@ -25,7 +27,17 @@ var (
 
 func init() {
 	var err error
-	ConfFile, err = ini.Load("../config/config.ini")
+	var dir string
+	goOS := runtime.GOOS
+	if goOS == "windows" {
+		dir = "config"
+		if flag.Lookup("test.v") != nil {
+			dir = "../config"
+		}
+	} else {
+		dir = "../config"
+	}
+	ConfFile, err = ini.Load(dir + "/config.ini")
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/config.ini': %v", err)
 	}
@@ -46,7 +58,7 @@ func LoadServerInfo() {
 		log.Fatalf("Fail to get secition 'server': %v", err)
 	}
 
-	HTTPIp = sec.Key("HTTP_IP").MustString("120.92.189.115")
+	HTTPIP = sec.Key("HTTP_IP").MustString("120.92.189.115")
 	HTTPPort = sec.Key("HTTP_PORT").MustInt(8000)
 }
 
@@ -58,8 +70,8 @@ func LoadRedisInfo() {
 
 	RedisIP = sec.Key("HTTP_IP").MustString("127.0.0.1")
 	RedisPort = sec.Key("HTTP_PORT").MustInt(6379)
-	MaxOpenConn = sec.Key("MAX_OPEN_CONNS").MustInt(10)
-	MaxIdleConn = sec.Key("MAX_IDLE_CONNS").MustInt(2)
+	MaxOpenConn = sec.Key("MAX_OPEN_CONN").MustInt(10)
+	MaxIdleConn = sec.Key("MAX_IDLE_CONN").MustInt(2)
 }
 
 func LoadLoggerInfo() {
