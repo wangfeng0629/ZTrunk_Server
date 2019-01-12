@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -75,7 +76,11 @@ func FormatLog(level int, format string, args ...interface{}) *LogData {
 
 // 格式化输出日志
 func FprintfLog(data *LogData) {
-	fmt.Fprintf(os.Stdout, "%s [\x1b[%dm%s\x1b[0m] %s:%d [%s] %s",
-		data.TimeLayout, color(data.LevelStr), data.LevelStr, data.FileName, data.LineNumber, data.FuncName, data.Message)
+	color := color(data.LevelStr)
+	cStr := strconv.Itoa((int)(color))
+	colorStr := "\x1b[" + cStr + "m%s\x1b[0m"
+	logStr := "%s " + "[" + colorStr + "]" + " %s:%d [%s] " + colorStr
+	fmt.Fprintf(os.Stdout, logStr,
+		data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.FuncName, data.Message)
 	fmt.Fprintf(os.Stdout, "\n")
 }
