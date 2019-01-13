@@ -1,67 +1,71 @@
 package logger
 
-type Console struct {
+type ConsoleLog struct {
 	level int
 }
 
-func CreateConsoleLog(level int) (log Log) {
-	log = &Console{
+func CreateConsoleLog(level int) (log Log, err error) {
+	log = &ConsoleLog{
 		level: level,
 	}
-	return log
+	return log, nil
 }
 
-func (c *Console) SetLevel(level int) {
+func (c *ConsoleLog) Init() {
+
+}
+
+func (c *ConsoleLog) SetLevel(level int) {
 	if level < DEBUG || level > FATAL {
 		c.level = DEBUG
 	}
 	c.level = level
 }
 
-func (c *Console) Debug(format string, args ...interface{}) {
+func (c *ConsoleLog) Debug(format string, args ...interface{}) {
 	if c.level > DEBUG {
 		return
 	}
 	logData := FormatLog(DEBUG, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }
 
-func (c *Console) Trace(format string, args ...interface{}) {
+func (c *ConsoleLog) Trace(format string, args ...interface{}) {
 	if c.level > TRACE {
 		return
 	}
 	logData := FormatLog(TRACE, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }
 
-func (c *Console) Warn(format string, args ...interface{}) {
+func (c *ConsoleLog) Warn(format string, args ...interface{}) {
 	if c.level > WARN {
 		return
 	}
 	logData := FormatLog(WARN, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }
 
-func (c *Console) Error(format string, args ...interface{}) {
+func (c *ConsoleLog) Error(format string, args ...interface{}) {
 	if c.level > ERROR {
 		return
 	}
 	logData := FormatLog(ERROR, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }
 
-func (c *Console) Fatal(format string, args ...interface{}) {
+func (c *ConsoleLog) Fatal(format string, args ...interface{}) {
 	if c.level > FATAL {
 		return
 	}
 	logData := FormatLog(FATAL, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }
 
-func (c *Console) Info(format string, args ...interface{}) {
+func (c *ConsoleLog) Info(format string, args ...interface{}) {
 	if c.level > INFO {
 		return
 	}
 	logData := FormatLog(INFO, format, args...)
-	FprintfLog(logData)
+	FprintfConsoleLog(logData)
 }

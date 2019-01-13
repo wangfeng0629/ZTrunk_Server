@@ -2,20 +2,16 @@ package logger
 
 import (
 	"ZTrunk_Server/setting"
-	"fmt"
 )
 
 var log Log
 
 func InitLog(name string) (err error) {
 	loggerLevel := setting.LoggerLevel
-	switch name {
-	case "console":
-		log = CreateConsoleLog(loggerLevel)
-	case "file":
-		log = CreateFileLog(loggerLevel)
-	default:
-		err = fmt.Errorf("unsupport log name : %s", name)
+	if name == "console" {
+		log, err = CreateConsoleLog(loggerLevel)
+	} else {
+		log, err = CreateFileLog(loggerLevel, name)
 	}
 	return
 }

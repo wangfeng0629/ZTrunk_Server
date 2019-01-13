@@ -7,14 +7,16 @@ import (
 
 func main() {
 	// init log
-	if logger.InitLog("console") != nil {
-		logger.Fatal("Init Logger Failed !!!")
+	err := logger.InitLog("HTTPServer")
+	if err != nil {
+		panic(err)
+		return
 	}
 
-	//start Redis
-	if redispool.InitRedis() == false {
+	// start Redis
+	if redispool.InitRedisPool() == false {
 		//log.Fatal("Redis Server Failed !!!")
-		logger.Fatal("Redis Server Failed !!!")
+		logger.Fatal("Connect Redis Server Failed !!!")
 		return
 	}
 	//defer redispool.FreePool()

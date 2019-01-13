@@ -4,8 +4,8 @@ import (
 	"ZTrunk_Server/logger"
 	"ZTrunk_Server/redispool"
 	"ZTrunk_Server/setting"
-	"fmt"
 
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -33,7 +33,7 @@ func HttpTestTask(w http.ResponseWriter, req *http.Request) {
 
 // get
 func HttpGetTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHander()
+	redis_pool := getRedisHandle()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	if len(id_str) != 2 {
@@ -57,7 +57,7 @@ func HttpGetTask(w http.ResponseWriter, req *http.Request) {
 
 // post
 func HttpPostTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHander()
+	redis_pool := getRedisHandle()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	v_str := strings.Split(h_str[1], "=")
@@ -86,7 +86,7 @@ func HttpPutTask(w http.ResponseWriter, req *http.Request) {
 
 // delete
 func HttpDeleteTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHander()
+	redis_pool := getRedisHandle()
 	h_str := strings.Split(req.URL.RawQuery, "?")
 	id_str := strings.Split(h_str[0], "=")
 	if len(id_str) != 2 {
@@ -120,7 +120,7 @@ func HandleMsg(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getRedisHander() *redispool.ConnPool {
+func getRedisHandle() *redispool.ConnPool {
 	return redispool.GetRedis()
 }
 
@@ -128,7 +128,7 @@ func HttpStartServer() {
 	http.HandleFunc("/", HandleMsg)
 	http.Handle("/hcg/", http.HandlerFunc(HandleMsg))
 
-	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIP, setting.HTTPPort)
+	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
 	logger.Info("[启动] Http监听端口 [%d]", setting.HTTPPort)
 	//fmt.Println("[启动] Http监听端口", setting.HTTPPort)
 	http.ListenAndServe(httpAddr, nil)

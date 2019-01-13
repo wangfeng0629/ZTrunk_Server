@@ -13,7 +13,7 @@ var (
 
 	RunMode string
 
-	HTTPIP   string
+	HTTPIp   string
 	HTTPPort int
 
 	RedisIP   string
@@ -22,7 +22,11 @@ var (
 	MaxOpenConn int
 	MaxIdleConn int
 
-	LoggerLevel int
+	LoggerLevel      int
+	FileDir          string
+	LogDataChanSize  int
+	SplitFileLogSize int64
+	SplitFileType    int
 )
 
 func init() {
@@ -58,7 +62,7 @@ func LoadServerInfo() {
 		log.Fatalf("Fail to get secition 'server': %v", err)
 	}
 
-	HTTPIP = sec.Key("HTTP_IP").MustString("120.92.189.115")
+	HTTPIp = sec.Key("HTTP_IP").MustString("120.92.189.115")
 	HTTPPort = sec.Key("HTTP_PORT").MustInt(8000)
 }
 
@@ -80,4 +84,8 @@ func LoadLoggerInfo() {
 		log.Fatalf("Fail to get secition 'log': %v", err)
 	}
 	LoggerLevel = sec.Key("LOGGER_LEVEL").MustInt(0)
+	FileDir = sec.Key("FILE_DIR").MustString("/log")
+	LogDataChanSize = sec.Key("LOG_DATA_CHAN_SIZE").MustInt(50000)
+	SplitFileLogSize = sec.Key("SPLIT_FILE_SIZE").MustInt64(104857600) // 默认100M
+	SplitFileType = sec.Key("SPLIT_FILE_TYPE").MustInt(0)
 }

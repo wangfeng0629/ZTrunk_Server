@@ -20,6 +20,12 @@ const (
 	SkyBlue
 )
 
+// 文件日志分割类型
+const (
+	SplitByTime = iota
+	SplitBySize
+)
+
 func getLevelStr(level int) string {
 	switch level {
 	case DEBUG:
