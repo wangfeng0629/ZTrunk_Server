@@ -121,5 +121,8 @@ func HttpStartServer() {
 
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
 	fmt.Println("[启动] Http监听端口", setting.HTTPPort)
-	http.ListenAndServe(httpAddr, nil)
+	e := http.ListenAndServe(httpAddr, nil)
+	if e != nil {
+		fmt.Println(e)
+	}
 }
