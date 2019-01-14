@@ -1,13 +1,19 @@
 package logger
 
-import "ZTrunk_Server/setting"
+import (
+	"ZTrunk_Server/setting"
+)
 
 var log Log
 
-func InitLogger() {
-	// 初始化控制台日志
+func InitLog(name string) (err error) {
 	loggerLevel := setting.LoggerLevel
-	log = CreateConsoleLog(loggerLevel)
+	if name == "console" {
+		log, err = CreateConsoleLog(loggerLevel)
+	} else {
+		log, err = CreateFileLog(loggerLevel, name)
+	}
+	return
 }
 
 func Debug(format string, args ...interface{}) {

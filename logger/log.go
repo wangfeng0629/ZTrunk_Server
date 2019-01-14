@@ -1,6 +1,9 @@
 package logger
 
 type Log interface {
+	// 初始化
+	Init()
+
 	// 设置日志级别
 	SetLevel(level int)
 

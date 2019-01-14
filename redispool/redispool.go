@@ -1,11 +1,13 @@
 package redispool
 
 import (
+	"ZTrunk_Server/logger"
 	"ZTrunk_Server/setting"
+
 	"fmt"
-	"github.com/gomodule/redigo/redis"
-	"log"
 	"time"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 // 连接池
@@ -15,22 +17,22 @@ type ConnPool struct {
 
 var pool = &ConnPool{}
 
-// 初始化Redis池
-func InitRedis() bool {
+// 初始化Redis连接池
+func InitRedisPool() bool {
 	redisAddr := fmt.Sprintf("%s:%d", setting.RedisIP, setting.RedisPort)
-	fmt.Println(redisAddr)
 	pool.redisPool = newPool(redisAddr, "", 0, setting.MaxOpenConn, setting.MaxIdleConn)
 	if _, err := pool.DoCmd("PING"); err != nil {
-		log.Fatal("Init Redis Poll Failed !!!", err.Error())
+		logger.Fatal("Init Redis Poll Failed !!! %v", err.Error())
 		return false
 	}
+	logger.Info("初始化 Redis [%s] 成功", redisAddr)
 	return true
 }
 
 // 删除连接池
 func FreePool() error {
 	err := pool.redisPool.Close()
-	log.Fatal("free redis poll")
+	logger.Fatal("free redis poll")
 	return err
 }
 

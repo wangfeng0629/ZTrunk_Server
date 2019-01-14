@@ -3,20 +3,23 @@ package main
 import (
 	"ZTrunk_Server/logger"
 	"ZTrunk_Server/redispool"
-	"log"
 )
 
 func main() {
-	//start Redis
-	if redispool.InitRedis() == false {
+	// init log
+	err := logger.InitLog("HTTPServer")
+	if err != nil {
+		panic(err)
+		return
+	}
 
-		log.Fatal("Redis Server Failed !!!")
+	// start Redis
+	if redispool.InitRedisPool() == false {
+		//log.Fatal("Redis Server Failed !!!")
+		logger.Fatal("Connect Redis Server Failed !!!")
 		return
 	}
 	//defer redispool.FreePool()
-
-	// init log
-	logger.InitLogger()
 
 	// start http_server
 	HttpStartServer()

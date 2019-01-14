@@ -1,7 +1,9 @@
 package setting
 
 import (
+	"flag"
 	"log"
+	"runtime"
 
 	"github.com/go-ini/ini"
 )
@@ -20,12 +22,26 @@ var (
 	MaxOpenConn int
 	MaxIdleConn int
 
-	LoggerLevel int
+	LoggerLevel      int
+	FileDir          string
+	LogDataChanSize  int
+	SplitFileLogSize int64
+	SplitFileType    int
 )
 
 func init() {
 	var err error
-	ConfFile, err = ini.Load("../config/config.ini")
+	var dir string
+	goOS := runtime.GOOS
+	if goOS == "windows" {
+		dir = "config"
+		if flag.Lookup("test.v") != nil {
+			dir = "../config"
+		}
+	} else {
+		dir = "../config"
+	}
+	ConfFile, err = ini.Load(dir + "/config.ini")
 	if err != nil {
 		log.Fatalf("Fail to parse 'config/config.ini': %v", err)
 	}
@@ -58,8 +74,8 @@ func LoadRedisInfo() {
 
 	RedisIP = sec.Key("HTTP_IP").MustString("127.0.0.1")
 	RedisPort = sec.Key("HTTP_PORT").MustInt(6379)
-	MaxOpenConn = sec.Key("MAX_OPEN_CONNS").MustInt(10)
-	MaxIdleConn = sec.Key("MAX_IDLE_CONNS").MustInt(2)
+	MaxOpenConn = sec.Key("MAX_OPEN_CONN").MustInt(10)
+	MaxIdleConn = sec.Key("MAX_IDLE_CONN").MustInt(2)
 }
 
 func LoadLoggerInfo() {
@@ -68,4 +84,8 @@ func LoadLoggerInfo() {
 		log.Fatalf("Fail to get secition 'log': %v", err)
 	}
 	LoggerLevel = sec.Key("LOGGER_LEVEL").MustInt(0)
+	FileDir = sec.Key("FILE_DIR").MustString("/log")
+	LogDataChanSize = sec.Key("LOG_DATA_CHAN_SIZE").MustInt(50000)
+	SplitFileLogSize = sec.Key("SPLIT_FILE_SIZE").MustInt64(104857600) // 默认100M
+	SplitFileType = sec.Key("SPLIT_FILE_TYPE").MustInt(0)
 }
