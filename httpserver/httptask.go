@@ -124,14 +124,16 @@ func getRedisHandle() *redispool.ConnPool {
 	return redispool.GetRedis()
 }
 
-func HttpStartServer() {
+func HttpStartServer() bool {
 	http.HandleFunc("/", HandleMsg)
 	http.Handle("/hcg/", http.HandlerFunc(HandleMsg))
 
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
 	e := http.ListenAndServe(httpAddr, nil)
 	if e != nil {
-		fmt.Println(e)
+		logger.Fatal("%s", e)
+		return false
 	}
 	logger.Info("[启动] Http监听端口 [%d]", setting.HTTPPort)
+	return true
 }

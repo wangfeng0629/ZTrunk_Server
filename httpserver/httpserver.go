@@ -15,12 +15,14 @@ func main() {
 
 	// start Redis
 	if redispool.InitRedisPool() == false {
-		//log.Fatal("Redis Server Failed !!!")
 		logger.Fatal("Connect Redis Server Failed !!!")
 		return
 	}
 	//defer redispool.FreePool()
 
 	// start http_server
-	HttpStartServer()
+	if HttpStartServer() == false {
+		logger.Fatal("Http Server Init Failed !!!")
+		return
+	}
 }
