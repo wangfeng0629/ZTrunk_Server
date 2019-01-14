@@ -1,6 +1,9 @@
 #debug or release
 RUN_MODE = debug
 
+[project]
+PROJECT_NAME = ZTrunk_Server
+
 [server]
 HTTP_IP = 120.92.189.115
 HTTP_PORT = 8001

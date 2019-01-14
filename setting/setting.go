@@ -13,6 +13,8 @@ var (
 
 	RunMode string
 
+	ProjectName string
+
 	HTTPIp   string
 	HTTPPort int
 
@@ -47,6 +49,7 @@ func init() {
 	}
 
 	LoadRunMode()
+	LoadProjectInfo()
 	LoadServerInfo()
 	LoadRedisInfo()
 	LoadLoggerInfo()
@@ -54,6 +57,15 @@ func init() {
 
 func LoadRunMode() {
 	RunMode = ConfFile.Section("").Key("Run_Mode").MustString("debug")
+}
+
+func LoadProjectInfo() {
+	sec, err := ConfFile.GetSection("project")
+	if err != nil {
+		log.Fatalf("Fail to get secition 'project': %v", err)
+	}
+
+	ProjectName = sec.Key("PROJECT_NAME").MustString("ZTrunk_Server")
 }
 
 func LoadServerInfo() {

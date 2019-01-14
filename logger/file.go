@@ -3,6 +3,7 @@ package logger
 import (
 	"ZTrunk_Server/setting"
 	"ZTrunk_Server/util"
+	"strings"
 
 	"fmt"
 	"time"
@@ -21,11 +22,30 @@ type FileLog struct {
 }
 
 func CreateFileLog(level int, fileName string) (log Log, err error) {
-	logPath, err := util.GetCurrentDir()
-	if err != nil {
-		fmt.Printf("get current dir failed !!!")
-		return log, err
+	var logPath string
+	logPath = util.GetSystemGoPATH()
+	resultStr := strings.Split(logPath, ";")
+	for i := range resultStr {
+		fmt.Printf("%s\n", resultStr[i])
+		logPath = resultStr[i] + "/src/" + setting.ProjectName
+		if isExist, err := util.CheckPathExist(logPath); isExist {
+			if err != nil {
+				fmt.Printf("get dir error !!!!")
+				continue
+			}
+			if isExist {
+				continue
+			}
+			break
+		}
 	}
+	/*
+		logPath, err := util.GetCurrentDir()
+		if err != nil {
+			fmt.Printf("get current dir failed !!!")
+			return log, err
+		}
+	*/
 	chanSize := setting.LogDataChanSize
 	if chanSize == 0 {
 		fmt.Printf("chanSize error ！！！")
