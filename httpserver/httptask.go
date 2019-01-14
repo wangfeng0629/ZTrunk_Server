@@ -129,11 +129,11 @@ func HttpStartServer() bool {
 	http.Handle("/hcg/", http.HandlerFunc(HandleMsg))
 
 	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
+	logger.Info("[启动] Http监听端口 [%d]", setting.HTTPPort)
 	e := http.ListenAndServe(httpAddr, nil)
 	if e != nil {
 		logger.Fatal("%s", e)
 		return false
 	}
-	logger.Info("[启动] Http监听端口 [%d]", setting.HTTPPort)
 	return true
 }
