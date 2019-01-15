@@ -2,6 +2,7 @@ package logger
 
 import (
 	"ZTrunk_Server/util"
+
 	"fmt"
 	"os"
 	"path"
@@ -77,7 +78,7 @@ func FormatLog(level int, format string, args ...interface{}) *LogData {
 
 // 格式化输出普通日志
 func FormatNormalLog() string {
-	logStr := "%s [%s] %s:%d [%s] %s\n"
+	logStr := "%s [%s] %s:%d %s\n"
 	return logStr
 }
 
@@ -86,7 +87,7 @@ func FormatColorLog(data *LogData) string {
 	color := color(data.LevelStr)
 	conStr := util.IntToString((int)(color))
 	colorStr := "\x1b[" + conStr + "m%s\x1b[0m"
-	logStr := "%s " + "[" + colorStr + "]" + " %s:%d [%s] " + colorStr
+	logStr := "%s " + "[" + colorStr + "]" + " [%s:%d] " + colorStr
 	return logStr
 }
 
@@ -94,6 +95,6 @@ func FormatColorLog(data *LogData) string {
 func FprintfConsoleLog(data *LogData) {
 	logStr := FormatColorLog(data)
 	fmt.Fprintf(os.Stdout, logStr,
-		data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.FuncName, data.Message)
+		data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.Message)
 	fmt.Fprintf(os.Stdout, "\n")
 }
