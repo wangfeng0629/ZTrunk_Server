@@ -43,3 +43,8 @@ func CheckPathExist(path string) (bool, error) {
 func CreateDir(path string) (err error) {
 	return os.Mkdir(path, os.ModePerm)
 }
+
+// 获取系统GOPATH
+func GetSystemGoPATH() string {
+	return os.Getenv("GOPATH")
+}
