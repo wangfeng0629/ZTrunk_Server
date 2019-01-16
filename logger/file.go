@@ -180,7 +180,7 @@ func (f *FileLog) fprintfLog(data *LogData) {
 	if f.file != nil {
 		logStr := FormatNormalLog()
 		_, err := fmt.Fprintf(f.file, logStr,
-			data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.FuncName, data.Message)
+			data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.Message)
 		if err != nil {
 			return
 		}
@@ -207,6 +207,7 @@ func (f *FileLog) splitFileByTime() {
 		Fatal("open file %s failed, %v", fileName, err)
 		panic(err)
 	}
+	f.file = file
 }
 
 func (f *FileLog) splitFileBySize() {
@@ -234,6 +235,7 @@ func (f *FileLog) splitFileBySize() {
 		Fatal("open file %s failed, %v", fileName, errFile)
 		panic(errFile)
 	}
+	f.file = file
 }
 
 func (f *FileLog) checkSplitFileByType(splitType int) {

@@ -19,6 +19,17 @@ func main() {
 		return
 	}
 	//defer redispool.FreePool()
+	/*
+		go func() {
+			oneSecTick := time.NewTicker(time.Second)
+			for {
+				select {
+				case <-oneSecTick.C:
+					logger.Fatal("oncTick")
+				}
+			}
+		}()
+	*/
 
 	// start http_server
 	if HttpStartServer() == false {
