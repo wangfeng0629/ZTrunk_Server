@@ -2,138 +2,57 @@ package main
 
 import (
 	"ZTrunk_Server/logger"
-	"ZTrunk_Server/redispool"
 	"ZTrunk_Server/setting"
-
 	"fmt"
 	"net/http"
-	"strings"
-
-	"github.com/gomodule/redigo/redis"
+	"time"
 )
 
-// test 测试代码
-func HttpTestTask(w http.ResponseWriter, req *http.Request) {
-	h_str := strings.Split(req.URL.RawQuery, "?")
-	if len(h_str) == 1 {
-		id_str := strings.Split(h_str[0], "=")
-		if id_str[0] == "id" {
-			HttpGetTask(w, req)
-		} else if id_str[0] == "del" {
-			HttpDeleteTask(w, req)
-		}
-	} else if len(h_str) == 2 {
-		HttpPostTask(w, req)
-	} else {
-		logger.Error("http error！")
-		//fmt.Println("http error！")
-		w.Write([]byte("http error！"))
+var (
+	server = &http.Server{
+		Addr:           ":http",
+		Handler:        &ppserver{},
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
+	handlersMap = make(map[string]HandlersFunc)
+)
+
+type ppserver struct {
 }
 
-// get
-func HttpGetTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHandle()
-	h_str := strings.Split(req.URL.RawQuery, "?")
-	id_str := strings.Split(h_str[0], "=")
-	if len(id_str) != 2 {
-		logger.Error("http get error!")
-		//fmt.Println("http get error!")
-		w.Write([]byte("http get error!"))
+type HandlersFunc func(http.ResponseWriter, *http.Request)
+
+func (*ppserver) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		logger.Error("客户端请求错误【%s】，只能请求Post", r.Method)
+		w.Write([]byte("错误请求模式"))
 		return
 	}
-	id := id_str[1]
-	g_str, e := redis.String(redis_pool.DoCmd("get", id))
-	if e != nil {
-		logger.Error("get error, not this key！")
-		//fmt.Println(e)
-		w.Write([]byte("get error, not this key！"))
-		return
-	}
-	g_str1 := "get ok！" + g_str
-	fmt.Println(g_str1)
-	w.Write([]byte(g_str1))
-}
-
-// post
-func HttpPostTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHandle()
-	h_str := strings.Split(req.URL.RawQuery, "?")
-	id_str := strings.Split(h_str[0], "=")
-	v_str := strings.Split(h_str[1], "=")
-	if len(id_str) != 2 || len(v_str) != 2 {
-		logger.Error("http gost/put error!")
-		//fmt.Println("http gost/put error!")
-		w.Write([]byte("http post/put error!"))
-		return
-	}
-	_, e := redis_pool.DoCmd("set", id_str[1], v_str[1])
-	if e != nil {
-		logger.Error("%s", e)
-		//fmt.Println(e)
-		p_str := "post error " + h_str[0] + "" + h_str[1]
-		w.Write([]byte(p_str))
-		return
-	}
-	p_str := "post ok! " + h_str[0] + " " + h_str[1]
-	fmt.Println(p_str)
-	w.Write([]byte(p_str))
-}
-
-// put
-func HttpPutTask(w http.ResponseWriter, req *http.Request) {
-}
-
-// delete
-func HttpDeleteTask(w http.ResponseWriter, req *http.Request) {
-	redis_pool := getRedisHandle()
-	h_str := strings.Split(req.URL.RawQuery, "?")
-	id_str := strings.Split(h_str[0], "=")
-	if len(id_str) != 2 {
-		logger.Error("http delete error!")
-		//fmt.Println("http delete error!")
-		w.Write([]byte("http delete error!"))
-		return
-	}
-	id := id_str[1]
-	_, e := redis_pool.DoCmd("del", id)
-	if e != nil {
-		fmt.Println(e)
-		return
-	}
-	p_str := "delete ok! " + id
-	fmt.Println(p_str)
-	w.Write([]byte(p_str))
-}
-
-func HandleMsg(w http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "GET":
-		HttpTestTask(w, req)
-		//HttpGetTask(w, req)
-	case "POST":
-		HttpPostTask(w, req)
-	case "PUT":
-		HttpPutTask(w, req)
-	case "DELETE":
-		HttpDeleteTask(w, req)
+	setHeader(w)
+	if h, ok := handlersMap[r.URL.Path]; ok {
+		h(w, r)
 	}
 }
 
-func getRedisHandle() *redispool.ConnPool {
-	return redispool.GetRedis()
+// 设置访问域
+func setHeader(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 }
 
+// 初始化网页链接列表（http消息列表） 后期要搞成配置 客户端、服务器公用
+func InitHandler() {
+	server.Addr = fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
+	handlersMap["/get"] = HttpGetTask
+	handlersMap["/set"] = HttpSetTask
+}
+
+// 启动http服务
 func HttpStartServer() bool {
-	http.HandleFunc("/", HandleMsg)
-	http.Handle("/hcg/", http.HandlerFunc(HandleMsg))
-
-	httpAddr := fmt.Sprintf("%s:%d", setting.HTTPIp, setting.HTTPPort)
+	InitHandler()
 	logger.Info("[启动] Http监听端口 [%d]", setting.HTTPPort)
-	e := http.ListenAndServe(httpAddr, nil)
-	if e != nil {
-		logger.Fatal("%s", e)
-		return false
-	}
+	server.ListenAndServe()
 	return true
 }
