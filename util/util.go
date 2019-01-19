@@ -18,7 +18,7 @@ func GetCurrentDir() (string, error) {
 }
 
 // 打开文件
-func OpenFile(fileName string) (*os.File, error) {
+func OpenFile(fileName string) (*File, error) {
 	return os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0755)
 }
 

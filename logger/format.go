@@ -78,7 +78,7 @@ func FormatLog(level int, format string, args ...interface{}) *LogData {
 
 // 格式化输出普通日志
 func FormatNormalLog() string {
-	logStr := "%s [%s] [%s:%d] %s\n"
+	logStr := "%s [%s] [%s:%d] %s"
 	return logStr
 }
 
@@ -94,7 +94,6 @@ func FormatColorLog(data *LogData) string {
 // 格式化输出到控制台
 func FprintfConsoleLog(data *LogData) {
 	logStr := FormatColorLog(data)
-	fmt.Fprintf(os.Stdout, logStr,
-		data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.Message)
+	fmt.Fprintf(os.Stdout, logStr, data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.Message)
 	fmt.Fprintf(os.Stdout, "\n")
 }

@@ -4,6 +4,7 @@ import (
 	"ZTrunk_Server/logger"
 	"ZTrunk_Server/setting"
 
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -78,16 +79,37 @@ func (connPool *ConnPool) DoCmd(command string, args ...interface{}) (interface{
 	return conn.Do(command, args...)
 }
 
-// 通过字符存值
-func (connPool *ConnPool) SetByString(key string, value interface{}) (interface{}, error) {
+// 通过字符存值，Json序列化
+func (connPool *ConnPool) SetByString(key string, value interface{}, expireTime int) error {
 	conn := connPool.redisPool.Get()
 	defer conn.Close()
-	return conn.Do("SET", key, value)
+
+	encodeValue, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("Set", key, encodeValue)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("EXPIRE", key, expireTime)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// 通过字符取值
-func (connPool *ConnPool) GetByString(key string) (string, error) {
+// 通过字符取值，返回字节数组，外层用Json反序列化处理
+func (connPool *ConnPool) GetByString(key string) ([]byte, error) {
 	conn := connPool.redisPool.Get()
 	defer conn.Close()
-	return redis.String(conn.Do("GET", key))
+
+	retValue, err := redis.Bytes(conn.Do("GET", key))
+	if err != nil {
+		return retValue, nil
+	}
+	return retValue, nil
 }

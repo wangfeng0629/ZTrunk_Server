@@ -3,6 +3,7 @@ package logger
 import (
 	"ZTrunk_Server/setting"
 	"ZTrunk_Server/util"
+	"os"
 	"strings"
 
 	"fmt"
@@ -181,6 +182,7 @@ func (f *FileLog) fprintfLog(data *LogData) {
 		logStr := FormatNormalLog()
 		_, err := fmt.Fprintf(f.file, logStr,
 			data.TimeLayout, data.LevelStr, data.FileName, data.LineNumber, data.Message)
+		fmt.Fprintf(os.Stdout, "\n")
 		if err != nil {
 			return
 		}
